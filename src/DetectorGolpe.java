@@ -64,7 +64,6 @@ public class DetectorGolpe {
                     detectadas.add(palavra);
                 }
             }
-
             return detectadas;
         }
     }
