@@ -13,7 +13,7 @@ public class DetectorGolpe {
     public static void main(String[] args) {
         Scanner leitor = new Scanner(System.in);
 
-        // Criando a lista de regras baseada nas suas definições:
+        // Criando a lista de regras
         Regra[] regras = {
                 new Regra(
                         "Senso de Urgência",
