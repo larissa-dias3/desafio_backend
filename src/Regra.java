@@ -12,5 +12,4 @@ public class Regra {
         this.porQueAtencao = porQueAtencao;
         this.falsoPositivo = falsoPositivo;
     }
-
 }

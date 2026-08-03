@@ -1,97 +1,121 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.text.Normalizer;
 import java.util.Scanner;
-import java.util.Set;
+
 public class DetectorGolpe {
-        public static void main(String[] args) {
-            List<String> listaSuspeitas = new ArrayList<>();
-            listaSuspeitas.add("hack");
-            listaSuspeitas.add("virus");
-            listaSuspeitas.add("senha");
-            listaSuspeitas.add("cartao");
-            listaSuspeitas.add("fraude");
-            listaSuspeitas.add("phishing");
-            listaSuspeitas.add("pix");
-
-            // busca  rápida
-            Set<String> conjuntoSuspeito = new HashSet<>(listaSuspeitas);
-
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("=== SISTEMA DE DETECÇÃO DE CONTEÚDO SUSPEITO ===");
-            System.out.println("Digite seu texto para análise (ou 'sair' para encerrar):\n");
-
-            while (true) {
-                System.out.print("> ");
-                String entradaUsuario = scanner.nextLine();
-
-                // encerrar o programa
-                if (entradaUsuario.equalsIgnoreCase("sair")) {
-                    System.out.println("Sistema encerrado.");
-                    break;
-                }
-                // Analisa a entrada do usuário
-                Set<String> encontradas = analisarTexto(entradaUsuario, conjuntoSuspeito);
-
-                // Retorna o resultado
-                if (!encontradas.isEmpty()) {
-                    System.out.println("ALERTA: Conteúdo SUSPEITO detectado!");
-                    System.out.println("Palavras identificadas: " + encontradas + "\n");
-                } else {
-                    System.out.println("Conteúdo SEGURO (nenhum termo suspeito encontrado).\n");
-                }
-            }
-
-            scanner.close();
-        }
-
-        /* Limpa a frase digitada, divide em palavras e compara com a lista suspeita.
-         */
-        private static Set<String> analisarTexto(String texto, Set<String> listaSuspeita) {
-            Set<String> detectadas = new HashSet<>();
-
-            // 1. Remove acentos/pontuações e passa tudo para minúsculo
-            String textoLimpo = texto.toLowerCase()
-                    .replaceAll("[^a-zA-Záàâãéèêíïóôõöúçñ0-9\\s]", "");
-
-            // 2. Separa a frase palavra por palavra
-            String[] palavras = textoLimpo.split("\\s+");
-
-            // 3. Verifica cada palavra digitada contra a lista suspeita
-            for (String palavra : palavras) {
-                if (listaSuspeita.contains(palavra)) {
-                    detectadas.add(palavra);
-                }
-            }
-            return detectadas;
-        }
+    // Função para remover acentos e converter para minúsculas
+    private static String normalizarTexto(String texto) {
+        if (texto == null) return "";
+        String semAcentos = Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return semAcentos.toLowerCase();
     }
-//metodo para ignorar acentos:
-/*Collator comparador inteligente = Collator.getInstance(new Locale("pt", "BR"));
-        // PRIMARY ignora acentos (ex: 'á' vira 'a') e ignora maiúsculas/minúsculas
-        comparadorInteligente.setStrength(Collator.PRIMARY);
 
-boolean encontrada = false;
-String palavraOriginal = "";
+    public static void main(String[] args) {
+        Scanner leitor = new Scanner(System.in);
 
-// 4. Varredura da lista usando o comparador
-        for (String palavraLista : listaDePalavras) {
-        // compare() retorna 0 se as palavras forem equivalentes
-        if (comparadorInteligente.compare(palavraLista, entradaUsuario) == 0) {
-encontrada = true;
-palavraOriginal = palavraLista;
+        // Criando a lista de regras baseada nas suas definições:
+        Regra[] regras = {
+                new Regra(
+                        "Senso de Urgência",
+                        new String[]{"urgente", "bloquead", "suspens", "agora", "imediatamente", "expira"},
+                        20,
+                        "Golpistas usam pressão para impedir que a vítima pense antes de agir.",
+                        "Algumas empresas realmente enviam avisos urgentes sobre problemas na conta."
+                ),
+                new Regra(
+                        "Links Desconhecidos ou Encurtados",
+                        new String[]{"http://", "https://", "www.", "bit.ly", "tinyurl"},
+                        20,
+                        "O link pode direcionar para sites falsos ou instalar programas maliciosos.",
+                        "O link pode ser legítimo, mas deve ser verificado antes de clicar."
+                ),
+                new Regra(
+                        "Promessa de Prêmios ou Dinheiro",
+                        new String[]{"premio", "prêmio", "brinde", "sorteio", "ganhou", "resgate"},
+                        15,
+                        "Ofertas muito vantajosas são comuns em golpes para atrair vítimas.",
+                        "Promoções reais existem; confirme sempre no site oficial."
+                ),
+                new Regra(
+                        "Solicitação de Dados Pessoais",
+                        new String[]{"cpf", "cartao", "cartão", "senha", "cvv", "confirmar dados"},
+                        25,
+                        "Essas informações podem ser usadas para fraude ou roubo de identidade.",
+                        "Bancos ou empresas podem solicitar alguns dados apenas em canais oficiais."
+                ),
+                new Regra(
+                        "Pedido de PIX ou Transferência",
+                        new String[]{"pix", "transferencia", "transferência", "deposito", "depósito", "pagamento"},
+                        20,
+                        "É uma estratégia muito comum em golpes financeiros diretos.",
+                        "O pedido pode ser verdadeiro, mas deve ser confirmado por outro meio."
+                ),
+                new Regra(
+                        "Arquivos ou Aplicativos para Baixar",
+                        new String[]{"baixar", "download", ".apk", ".exe", "arquivo", "anexo"},
+                        25,
+                        "O arquivo pode conter vírus ou programas maliciosos.",
+                        "Verifique a fonte antes de abrir qualquer arquivo recebido."
+                )
+        };
+
+        System.out.println("=======================================");
+        System.out.println("DETECTOR DE GOLPES");
+        System.out.println("=======================================");
+        System.out.println("Digite 'sair' para encerrar o programa.");
+
+        while (true) {
+            System.out.print("\nCole a mensagem para análise: ");
+            String mensagem = leitor.nextLine();
+
+            if (mensagem.equalsIgnoreCase("sair")) {
+                System.out.println("Programa encerrado.");
                 break;
-                        }
-                        }
+            }
 
-                        // 5. Resultado
-                        if (encontrada) {
-        System.out.println("Palavra identificada: " + palavraOriginal);
-        } else {
-                System.out.println("Palavra não encontrada.");
+            String textoTratado = normalizarTexto(mensagem);
+            int nivelDeRisco = 0;
+            boolean encontrouAlgumaRegra = false;
+
+            System.out.println("\n----------------- RELATÓRIO DE ANÁLISE -----------------");
+
+            // Avalia a mensagem contra cada uma das regras
+            for (Regra regra : regras) {
+                boolean regraViolada = false;
+
+                for (String palavra : regra.palavrasChave) {
+                    if (textoTratado.contains(palavra)) {
+                        regraViolada = true;
+                        break;
+                    }
+                }
+
+                if (regraViolada) {
+                    encontrouAlgumaRegra = true;
+                    nivelDeRisco += regra.pontos;
+
+                    System.out.println("\nALERTA: " + regra.nome);
+                    System.out.println("Por que atenção? " + regra.porQueAtencao);
+                    System.out.println("Atenção à exceção: " + regra.falsoPositivo);
+                }
+            }
+
+            // Limita o nível de risco a 100%
+            if (nivelDeRisco > 100) nivelDeRisco = 100;
+
+            System.out.println("\n--------------------------------------------------------");
+            System.out.println("Pontuação de Risco Calculada: " + nivelDeRisco + "%");
+
+            if (!encontrouAlgumaRegra) {
+                System.out.println("Veredito: BAIXO RISCO - Nenhum padrão clássico de golpe detectado.");
+            } else if (nivelDeRisco >= 50) {
+                System.out.println("Veredito: ALTO RISCO - Fortes indícios de mensagem fraudulenta!");
+            } else {
+                System.out.println("Veredito: RISCO MÉDIO - Mensagem suspeita. Proceda com cautela.");
+            }
+            System.out.println("--------------------------------------------------------\n");
         }
 
-                scanner.close();
+        leitor.close();
     }
-}*/
+}
