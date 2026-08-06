@@ -2,7 +2,7 @@ import java.text.Normalizer;
 import java.util.Scanner;
 
 public class DetectorGolpe {
-    // Função para remover acentos e converter para minúsculas
+    // remove acentos e converte para minúsculas
     private static String normalizarTexto(String texto) {
         if (texto == null) return "";
         String semAcentos = Normalizer.normalize(texto, Normalizer.Form.NFD)
@@ -83,7 +83,7 @@ public class DetectorGolpe {
             for (Regra regra : regras) {
                 boolean regraViolada = false;
 
-                for (String palavra : regra.palavrasChave) {
+                for (String palavra : regra.getPalavrasChave()) {
                     if (textoTratado.contains(palavra)) {
                         regraViolada = true;
                         break;
@@ -92,11 +92,11 @@ public class DetectorGolpe {
 
                 if (regraViolada) {
                     encontrouAlgumaRegra = true;
-                    nivelDeRisco += regra.pontos;
+                    nivelDeRisco += regra.getPontos();
 
-                    System.out.println("\nALERTA: " + regra.nome);
-                    System.out.println("Por que atenção? " + regra.porQueAtencao);
-                    System.out.println("Atenção à exceção: " + regra.falsoPositivo);
+                    System.out.println("\nALERTA: " + regra.getNome());
+                    System.out.println("Por que atenção? " + regra.getPorQueAtencao());
+                    System.out.println("Atenção à exceção: " + regra.getFalsoPositivo());
                 }
             }
 
